@@ -51,7 +51,7 @@ public:
         return std::sqrt(length_squared());
     }
 
-
+    
 
 };
 
@@ -96,4 +96,8 @@ inline vec3 cross(const vec3& v1,const vec3& v2){
         v1.z()*v2.x() - v1.x()*v2.z(),
         v1.x()*v2.y() - v1.y()*v2.x()
     );
+}
+
+inline vec3 unit_vector(const vec3& v) {
+        return v / v.length();
 }

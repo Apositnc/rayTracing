@@ -4,8 +4,32 @@
 #include "vec3.h"
 #include "ray.h"
 
-//返回黑色
+double hit_sphere(const point3& center,double radius,const ray& r){
+    vec3 oc = center - r.origin();
+    double a = dot(r.Dir(),r.Dir());
+    double b = -2.0*dot(r.Dir(),oc);
+    double c = dot(oc,oc) -radius*radius;
+    double d = b*b-4*a*c;
+
+    if (d < 0) {
+        return -1.0;
+    } else {
+        return (-b - std::sqrt(d) ) / (2.0*a);//t是摄像机离与圆的交点有多远
+    }
+}
+
 color ray_color(const ray& r){
+
+
+    double t = hit_sphere(point3(0,0,-1),0.5,r);
+    //相交才的球才有颜色
+    if(t>0.0){
+        vec3 n = unit_vector(r.at(t)-vec3(0,0,-1));//rat算出交点坐标 然后是与球心坐标算出法线
+        //n 是一个在长度在球半径内的向量 画的颜色和设置的半径有关系
+        return 0.5*color(n.x()+1,n.y()+1,n.z()+1);
+    }
+
+    //天空背景
     vec3 unitDir = unit_vector(r.Dir());
     //越往上 y 越大 蓝色越多
     //设置的天空盒是这样
@@ -13,9 +37,7 @@ color ray_color(const ray& r){
     //加一之后再次归一化 a决定蓝色多少 1-a决定白色多少
     //白色 W = (1.0, 1.0, 1.0)
     //蓝色 B = (0.5, 0.7, 1.0)
-
     double a = 0.5*(unitDir.y()+1);
-
     //return (1-a)*color(1.0,1.0,1.0)+a*color(0.5, 0.7, 1.0);//下蓝上白
     return a*color(1.0,1.0,1.0)+(1-a)*color(0.5, 0.7, 1.0);
 }

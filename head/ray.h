@@ -1,7 +1,7 @@
 #pragma once
 
 #include<vec3.h>
-
+//定义光线是两个参数 起点和方向 一个坐标 一个向量
 class ray
 {
 private:

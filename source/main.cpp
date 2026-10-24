@@ -7,14 +7,15 @@
 double hit_sphere(const point3& center,double radius,const ray& r){
     vec3 oc = center - r.origin();
     double a = dot(r.Dir(),r.Dir());
-    double b = -2.0*dot(r.Dir(),oc);
+    //double b = -2.0*dot(r.Dir(),oc);
+    double h = dot(r.Dir(),oc);
     double c = dot(oc,oc) -radius*radius;
-    double d = b*b-4*a*c;
+    double d = 4*h*h-4*a*c;
 
     if (d < 0) {
         return -1.0;
     } else {
-        return (-b - std::sqrt(d) ) / (2.0*a);//t是摄像机离与圆的交点有多远
+        return (h - std::sqrt(d) ) / a;//t是摄像机离与圆的交点有多远
     }
 }
 

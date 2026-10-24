@@ -7,7 +7,7 @@ class sphere : public hittable{
 public:
     sphere(const point3& center,double radius):center(center),radius(radius){}
 
-    bool hit(const ray& r,double ray_tmin,double ray_tmax,hit_record& rec)const override{
+    bool hit(const ray& r,interval ray_t,hit_record& rec)const override{
 
         vec3 oc = center - r.origin();
         double a = dot(r.Dir(),r.Dir());
@@ -15,21 +15,23 @@ public:
         double h = dot(r.Dir(),oc);
         double c = dot(oc,oc) -radius*radius;
 
-        double d = 4*h*h-4*a*c;
-        double tmin = (h - std::sqrt(d) ) / a;
-        double tmax = (h + std::sqrt(d) ) / a;
+        // 使用 h 后，根为 (h ± sqrt(h*h - a*c)) / a。
+        double d = h*h-a*c;
 
         if (d < 0) {
             return false;
         } else {
-            if(tmin<ray_tmax&&tmin>ray_tmin)
+            double sqrtd = std::sqrt(d);
+            double tmin = (h - sqrtd) / a;
+            double tmax = (h + sqrtd) / a;
+            if(tmin<ray_t.max&&tmin>ray_t.min)
             {
                 rec.t = tmin;//长度
                 rec.p = r.at(rec.t);//交点坐标
                 vec3 outward_normal = (rec.p - center)/radius;
                 rec.set_face_normal(r,outward_normal);
                 return true;
-            }else if(tmax<ray_tmax&&tmax>ray_tmin){
+            }else if(tmax<ray_t.max&&tmax>ray_t.min){
                 rec.t = tmax;//长度
                 rec.p = r.at(rec.t);//交点坐标
                 //rec.normal = (rec.p - center)/radius;

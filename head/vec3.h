@@ -1,6 +1,7 @@
 #pragma once
 #include<cmath>
 #include<iostream>
+#include "rtweekend.h"
 
 class vec3 {
 private:
@@ -51,7 +52,12 @@ public:
         return std::sqrt(length_squared());
     }
 
-    
+    static vec3 random(){
+        return vec3(random_double(),random_double(),random_double());
+    }
+    static vec3 random(double min, double max){
+        return vec3(random_double(min,max),random_double(min,max),random_double(min,max));
+    }
 
 };
 
@@ -100,4 +106,23 @@ inline vec3 cross(const vec3& v1,const vec3& v2){
 
 inline vec3 unit_vector(const vec3& v) {
         return v / v.length();
+}
+
+inline vec3 random_unit_vector(){
+    while(true){
+        point3 p = vec3::random(-1,1);
+        double lens = p.length_squared();
+        if(lens<=1&&lens>1e-160){
+            return p/sqrt(lens);//生成的是随机单位方向
+        }
+    }
+}
+
+inline vec3 random_on_hemisphere(const vec3& normal){
+    vec3 on_unit_sphere = random_unit_vector();
+    if(dot(on_unit_sphere,normal)>0.0){
+        return on_unit_sphere;
+    }else{
+        return -on_unit_sphere;
+    }
 }

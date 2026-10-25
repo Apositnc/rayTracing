@@ -1,6 +1,7 @@
 #pragma once
 
 #include "hittable.h"
+#include "material.h" // 调用 scatter() 需要材质类的完整定义。
 #include "vec3.h"
 
 
@@ -63,16 +64,29 @@ private:
     color ray_color(const ray& r,int depth,const hittable& world){
         if(depth<=0)
             return color(0,0,0);
+
         hit_record rec;
-        if(world.hit(r,interval(0.001,infinity),rec)){
+
+        if(world.hit(r,interval(0.001,infinity),rec)){//如果进入内层循环则证明已经发生了碰撞 rec已经记录上数据
             //vec3 direction = random_on_hemisphere(rec.normal);
-            vec3 direction = rec.normal + random_unit_vector();
-            return 0.5*ray_color(ray(rec.p,direction),depth-1,world);
+            //vec3 direction = rec.normal + random_unit_vector();
+            //return 0.5*ray_color(ray(rec.p,direction),depth-1,world);
+
+            //初始化 颜色 和 反射之后的光线
+            ray scattered;
+            color attenuation;
+            
+            if(rec.mat->scatter(r,rec,attenuation,scattered)){
+                return attenuation * ray_color(scattered,depth-1,world);
+            }
+            return color(0,0,0);
         }
+
+
         vec3 unit_direction = unit_vector(r.Dir());
         auto a = 0.5 * (unit_direction.y() + 1.0);
-        return a*color(1.0,1.0,1.0) + (1.0-a)*color(0.5,0.7,1.0);
-        //return (1.0-a)*color(1,1,1) + a*color(0.5,0.7,1);
+        //return a*color(1.0,1.0,1.0) + (1.0-a)*color(0.5,0.7,1.0);
+        return (1.0-a)*color(1,1,1) + a*color(0.5,0.7,1);
     }
 
 

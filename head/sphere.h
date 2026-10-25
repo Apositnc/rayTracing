@@ -5,7 +5,9 @@
 
 class sphere : public hittable{
 public:
-    sphere(const point3& center,double radius):center(center),radius(radius){}
+    sphere(const point3& center,double radius,shared_ptr<material> mat):center(center),radius(std::fmax(0,radius)),mat(mat) {
+        //初始化mat 材料指针
+    }
 
     bool hit(const ray& r,interval ray_t,hit_record& rec)const override{
 
@@ -30,6 +32,7 @@ public:
                 rec.p = r.at(rec.t);//交点坐标
                 vec3 outward_normal = (rec.p - center)/radius;
                 rec.set_face_normal(r,outward_normal);
+                rec.mat = mat;//与当前这个球发生碰撞之后就是把 材料记录到rec内部..
                 return true;
             }else if(tmax<ray_t.max&&tmax>ray_t.min){
                 rec.t = tmax;//长度
@@ -37,6 +40,7 @@ public:
                 //rec.normal = (rec.p - center)/radius;
                 vec3 outward_normal = (rec.p - center)/radius;
                 rec.set_face_normal(r,outward_normal);
+                rec.mat = mat;//
                 return true;
             }
             return false;
@@ -47,4 +51,5 @@ public:
 private:
     point3 center;
     double radius;
+    shared_ptr<material> mat;//当前球体的材质指针
 };

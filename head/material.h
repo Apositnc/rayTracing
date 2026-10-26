@@ -57,3 +57,41 @@ private:
 
     double fuzz;
 };
+
+class dielectric : public material{
+public:
+
+    dielectric(double ri): ri(ri){
+
+    }
+
+    bool scatter(const ray& r_in,const hit_record& rec,color& attenuation,ray& scattered) const override{
+        attenuation = color(1.0,1.0,1.0);
+        double refraction_ratio = rec.front_face ? (1.0/ri) : ri;//进入玻璃用 1/ri，离开玻璃用 ri
+        vec3 unit_dir = unit_vector(r_in.Dir());
+        
+        double cos_theta = std::fmin(dot(-unit_dir,rec.normal),1.0);
+        double sin_theta = std::sqrt(1-cos_theta*cos_theta);
+
+        bool cannot_refract = refraction_ratio * sin_theta > 1.0;
+        vec3 dir;
+        
+        if(cannot_refract||reflectance(cos_theta,refraction_ratio)>random_double()){
+            dir = reflect(unit_dir,rec.normal);
+        }else{
+            dir = refract(unit_dir,rec.normal,refraction_ratio);
+        }
+        
+        scattered = ray(rec.p,dir);
+        return true;
+    }
+private:
+    double ri;
+    static double reflectance(double cosine,double ri){
+
+        double r0 = (1-ri)/(1+ri);
+        r0 = r0*r0;
+        return r0 + (1-r0)*std::pow((1-cosine),5);
+
+    }
+};

@@ -18,27 +18,35 @@ private:
     
     double pixel_samples_scale;  // 像素样本总和的颜色缩放因子
 
+    vec3 u,v,w;
+
     void initialize(){
         image_h = int(image_w/aspect_ratio);
         if(image_h<1)
             image_h = 1;
-        camera_center = point3(0,0,0);
-        focal_length = 1.0;//板子离相机垂直距离
+        camera_center = lookfrom;
+        focal_length = (lookfrom-lookat).length();//板子离相机垂直距离
 
-        double viewport_h = 2;
+        w = unit_vector(lookfrom - lookat);
+        u = unit_vector(cross(vup,w));
+        v = cross(w,u);
+
+        double theta = degrees_to_radians(vfov);
+        double viewport_h = 2 * std::tan(theta/2) * focal_length;
         double viewport_w = viewport_h*(double(image_w)/image_h);
 
         //沿着板子宽高走的两个向量 长度和方向
-        vec3 viewport_u = vec3(viewport_w,0,0);
-        vec3 viewport_v = vec3(0,-viewport_h,0);//图像行号向下增加，对应世界坐标 y 减小
+        vec3 viewport_u = viewport_w*u;
+        vec3 viewport_v = viewport_h* -v;//图像行号向下增加，对应世界坐标 y 减小
 
         //用之前确定的像素算 在视口上面一步走多长距离
         pixel_delta_u = viewport_u / image_w;
         pixel_delta_v = viewport_v / image_h;
 
         //视口左上角坐标 也就是最开始的第一个格子的左上角
-        point3 viewportLeft = camera_center - vec3(0,0,focal_length)
-                            -viewport_u/2 - viewport_v/2;
+        // point3 viewportLeft = camera_center - vec3(0,0,focal_length)
+        //                     -viewport_u/2 - viewport_v/2;
+        point3 viewportLeft = camera_center - (focal_length * w) - viewport_u/2-viewport_v/2; 
         //第一个格子加上半个格子得到格子中心
         pix100Loc = viewportLeft+0.5*(pixel_delta_u+pixel_delta_v);
 
@@ -54,7 +62,7 @@ private:
         vec3 offset = sample_square();//offset这里表示这一格内偏移了多少
         point3 pixel_sample = pix100Loc//pixel_delta_u是像素大小 但是这里offset小于1 保证不会超出去
                             +((i+offset.x())*pixel_delta_u)
-                            +((j+offset.x())*pixel_delta_v);
+                            +((j+offset.y())*pixel_delta_v);
         point3 ray_origin = camera_center;
         vec3 ray_direction = pixel_sample - ray_origin;
         return ray(ray_origin,ray_direction);
@@ -95,6 +103,13 @@ public:
     int image_w = 400;
     int samples_per_pixel = 10;   // 每个像素的随机采样数
     int max_depth = 10;   // 射线在场景中弹射次数上限
+
+
+    double vfov = 90;
+    point3 lookfrom = point3(0,0,0);
+    point3 lookat = point3(0,0,-1);
+    vec3 vup = vec3(0,1,0);
+
 
     void render(const hittable& world){
         initialize();
